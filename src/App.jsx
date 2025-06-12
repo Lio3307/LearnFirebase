@@ -1,47 +1,66 @@
 import { useEffect, useState } from 'react'
 import { Auth } from './components/Auth'
 import { db } from './config/firebase/config'
-import {getDocs, collection, addDoc, deleteDoc, doc} from 'firebase/firestore'
+import {getDocs, collection, addDoc, deleteDoc, doc, updateDoc} from 'firebase/firestore'
 
 function App() {
 
   const [libraryList, setLibraryList] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isEditingById, setIsEditingById] = useState(null)
+
 
   //New library data
   const [newLibTitle, setNewLibTitle] = useState("")
   const [newLibReleaseDate, setNewLibReleaseDate] = useState(0)
   const [isPopuler, setIsPopuler] = useState(false)
 
+  //Updated Title
+  const [updatedTitleLib, setUpdatedTitleLib] = useState("")
+
   const libraryCollectionRef = collection(db, "library")
 
-  const deleteLibrary = async () => {
+  const deleteLibrary = async (id) => {
     try {
-      const libraryDoc = 
+      const libraryDoc = doc(db, "library", id)
+      await deleteDoc(libraryDoc)
     } catch (err) {
       console.error(err)
     }
   }
 
-  const getLibraryList = async () => {
+  const updateLib = async (id) => {
     try {
-      const data = await getDocs(libraryCollectionRef)
-      const filteredData = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
-      setLibraryList(filteredData)
+      const libraryDoc = doc(db, "library", id)
+      await updateDoc(libraryDoc, {title: updatedTitleLib})
     } catch (err) {
       console.error(err)
-    } finally {
-      setIsLoading(false)
     }
   }
 
+  
   useEffect(() => {
+    const getLibraryList = async () => {
+      try {
+        const data = await getDocs(libraryCollectionRef)
+        const filteredData = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+        setLibraryList(filteredData)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
     getLibraryList()
-  }, [])
+  }, [libraryList])
 
   const submitNewLib = async () => {
     try {
+      if(!newLibTitle.trim() || !newLibReleaseDate){
+        alert("input filed harus terisi")
+        return
+      }
       await addDoc(libraryCollectionRef, 
         {title: newLibTitle, 
           releaseDate: newLibReleaseDate, 
@@ -92,6 +111,34 @@ function App() {
               <div className="list" key={lib.id}>
                 <h3>{lib.title}</h3>
                 <h5>{lib.releaseDate}</h5>
+
+                { isEditingById === lib.id && (<>
+                  <label>Title</label><br />
+                  <input 
+                  value={updatedTitleLib}
+                  onChange={(e) => {
+                    setUpdatedTitleLib(e.target.value)
+                  }}
+                  type="text" /><br />
+                  </>
+                  )}
+
+                <button onClick={() => 
+                  deleteLibrary(lib.id)
+                }>Delete</button>
+
+                <button onClick={() =>{ 
+                  isEditingById === lib.id ? setIsEditingById(null) : setIsEditingById(lib.id)
+                }}
+
+                   >{isEditingById === lib.id ? "Cancle Editing" : "Edit"}  </button>
+
+                   {isEditingById === lib.id ? (
+                    <button onClick={() => {
+                      updateLib(lib.id)
+                      setUpdatedTitleLib("")
+                    }}>Update</button>
+                    ) : ''}
               </div>
             ))}
         </div>

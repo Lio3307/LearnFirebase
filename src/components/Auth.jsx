@@ -40,6 +40,7 @@ export const Auth = () => {
         <>
             <label>Email</label><br/>
             <input 
+            value={email}
             onChange={(e) => {
                 setEmail(e.target.value)
             }}
@@ -47,6 +48,7 @@ export const Auth = () => {
 
             <label>Password</label><br/>
             <input 
+            value={password}
             onChange={(e) => {
                 setPassword(e.target.value)
             }}
