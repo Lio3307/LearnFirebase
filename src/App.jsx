@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Auth } from './components/Auth'
-import { db } from './config/firebase/config'
+import { db, auth } from './config/firebase/config'
 import {getDocs, collection, addDoc, deleteDoc, doc, updateDoc} from 'firebase/firestore'
 
 function App() {
-
+1
   const [libraryList, setLibraryList] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isEditingById, setIsEditingById] = useState(null)
@@ -53,7 +53,7 @@ function App() {
     }
 
     getLibraryList()
-  }, [libraryList])
+  }, [])
 
   const submitNewLib = async () => {
     try {
@@ -64,7 +64,8 @@ function App() {
       await addDoc(libraryCollectionRef, 
         {title: newLibTitle, 
           releaseDate: newLibReleaseDate, 
-          topFavBook: isPopuler
+          topFavBook: isPopuler,
+          userId: auth?.currentUser?.uid
         })
     } catch (err) {
       console.error(err)
